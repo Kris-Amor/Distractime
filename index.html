@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Distractime</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div>
+            <h1>Please insert the time</h1>
+            <fieldset>
+            <legend>Current Time</legend>
+            <!-- Hours -->
+            <input type="number" id="currtimeHrs" min="0" placeholder="HH" style="width: 50px; text-align: center;">
+            <span>:</span>
+
+            <!-- Minutes -->
+            <input type="number" id="currtimeMins" min="0"  placeholder="MM" style="width: 50px; text-align: center;">
+            <span>:</span>
+        
+            <!-- Seconds -->
+            <input type="number" id="currtimeSecs"  min="0" placeholder="SS" style="width: 50px; text-align: center;">
+            </fieldset>
+
+            <fieldset>
+            <legend>Runtime</legend>
+            <!-- Hours -->
+            <input type="number" id="runtimeHrs" min="0" placeholder="HH" style="width: 50px; text-align: center;">
+            <span>:</span>
+
+            <!-- Minutes -->
+            <input type="number" id="runtimeMins" min="0" placeholder="MM" style="width: 50px; text-align: center;">
+            <span>:</span>
+        
+            <!-- Seconds -->
+            <input type="number" id="runtimeSecs" min="0" placeholder="SS" style="width: 50px; text-align: center;">
+            </fieldset>
+
+            <button id="calculateTimeDiff">Calculate</button>
+
+        </div>
+
+        <div>
+            <p id="resultTimeDiff"></p>
+        </div>
+    </body>
+<script src="js-scripts/main.js" defer></script>
+</script>
+</html>

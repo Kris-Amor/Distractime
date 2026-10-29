@@ -7,8 +7,18 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
+
         <div>
-            <h1>Please insert the time</h1>
+            <h2>Time Progress</h2>
+            <div id="progressBar">
+                <div id="progressFill">
+
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2>Please insert the time</h2>
             <fieldset>
             <legend>Current Time</legend>
             <!-- Hours -->
@@ -41,9 +51,33 @@
 
         </div>
 
+
+
         <div>
+            <h3>Time Remaining: </h3>
             <p id="resultTimeDiff"></p>
         </div>
+
+        <div>
+            <h3>Total Time Elapsed: </h3>
+            <p id="totaltimeTotalDisplay"></p>
+        </div>
+
+        <div>
+            <h3>Real Time Elapsed: </h3>
+            <p id="realtimeTotalDisplay"></p>
+        </div>
+
+        <div>
+            <h3>Watched Passed: </h3>
+            <p id="watchedTotalDisplay"></p>
+        </div>
+
+        <div>
+            <h3>Distraction Time: </h3>
+            <p id="distractedTotalDisplay"></p>
+        </div>
+
     </body>
 <script src="js-scripts/main.js" defer></script>
 </script>

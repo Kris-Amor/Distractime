@@ -1,0 +1,24 @@
+
+button, h2, p, h1 { 
+	margin: 16px; 
+}
+
+#progressBar{
+	height: 20px;
+	border-radius: 10px;
+	background-color: aqua;
+	overflow: hidden;
+
+}
+
+#progressFill{
+	height: 100%;
+	background-color: blueviolet;
+	width:0%;
+	border-radius: 10px;
+	overflow: hidden;
+	text-align: center;
+  	line-height: 100%; 
+  	color: white;
+	transition: width 5s;
+}

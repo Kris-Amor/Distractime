@@ -19,6 +19,7 @@ let watchedTotalSecs = 0; // Total Time for Watched
 let distractionTotalSecs = 0; // Total Time Distracted
 let totalElapsedSecs = 0;  // Total for real time
 let sessionElapsedSecs = 0; // Counts the time for current sessions
+let pausedTotalSecs = 0; // Total Paused Time
 let progressBar; // Moves the Progress Bar
 
 // The Storage Keys
@@ -42,7 +43,7 @@ let startTimestamp = null;
 let intervalCheck; // Interval counter
 let timeInterval = null; // Calculated Interval
 let pauseStartedAt = null;
-let pausedSoFarSecs = 0;
+let pausedSoFarSecs = 0, thisPauseSecs = null;
 
 watchedTotalSecs = Number(localStorage.getItem(savedWatchTotal));
 distractionTotalSecs = Number(localStorage.getItem(savedDistactTotal));
@@ -106,6 +107,7 @@ document.getElementById("totaltimeTotalDisplay").textContent = formatTime(totalE
 document.getElementById("realtimeTotalDisplay").textContent = formatTime(sessionElapsedSecs);
 document.getElementById("watchedTotalDisplay").textContent = formatTime(watchedTotalSecs);
 document.getElementById("distractedTotalDisplay").textContent = formatTime(distractionTotalSecs);
+document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
 }
 
     function formatTime (seconds){
@@ -199,34 +201,68 @@ document.getElementById("calculateTimeDiff").onclick = function(){
     previousTimeSecs = currtimeTotalSecs;
 }
 
-document.getElementById("startTime").onclick = function(){
-    startTimestamp = Date.now();
-    console.log(startTimestamp);
-
-    intervalCheck = setInterval(function(){
+function intervalClock (){ 
+    intervalCheck = setInterval (function(){
     // runs every time the interval fires
-  
     timeInterval = Date.now() - startTimestamp;
     timeInterval = convertSeconds(timeInterval);
+    timeInterval -= pausedSoFarSecs;
     console.log(timeInterval);
     document.getElementById("automaticClock").textContent = formatTime(timeInterval);
     }, 1000);
+}
 
+document.getElementById("startTime").onclick = function(){
+    startTimestamp = Date.now();
+    console.log(startTimestamp);
+    intervalClock ();
     startTime.disabled = true; // Stop button from being pressed again
+
 }
 
 document.getElementById("pauseTime").onclick = function(){
-    pauseStartedAt = Date.now() - startTimestamp;
-    pausedSoFarSecs = timeInterval;
-    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
+    if (startTimestamp === null){ //Makes sure you're not pausing anything.
+    alert("There is nothing to pause. Please click Start.");
+    return;
+    }
+    if (pauseStartedAt === null){
+    document.getElementById("pauseTime").textContent = "Resume";
+    pauseStartedAt = Date.now(); // Gets the check done.
     clearInterval(intervalCheck);
+    console.log(pauseStartedAt);
     console.log(timeInterval);
+    console.log("Pausing...");
+    }
+    else {
+    document.getElementById("pauseTime").textContent = "Pause";
+    thisPauseSecs = convertSeconds(Date.now() - pauseStartedAt);
+    pausedSoFarSecs += thisPauseSecs;
+    pausedTotalSecs += thisPauseSecs;
+    document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
+    pauseStartedAt = null;
+    intervalClock ();
+    console.log("Resuming...");
+    } 
 }
 
 
 document.getElementById("stopTime").onclick = function(){
+    if (startTimestamp === null){ //Makes sure you're not stoping anything.
+    alert("There is nothing to stop. Please click start.");
+    return;
+    }
+    document.getElementById("pauseTime").textContent = "Pause";
+    pausedTotalSecs += thisPauseSecs;
+    pausedSoFarSecs = 0;
+    timeInterval = null;
+    startTimestamp = null;
+    pauseStartedAt = null;
+    thisPauseSecs = null;
     clearInterval(intervalCheck);
+    document.getElementById("automaticClock").textContent = formatTime(timeInterval)
     console.log(timeInterval);
+    console.log("Stopping...");
+    startTime.disabled = false; // Stop button from being pressed again
 }
 
 document.getElementById("resetTracker").onclick = function(){
@@ -255,6 +291,14 @@ document.getElementById("resetTracker").onclick = function(){
     sessionElapsedSecs = 0;
     previousTimeSecs = null;       // null, not 0, so the first-click check works
     previousTimestampMs = null;
+
+    pausedTotalSecs = 0;
+    pausedSoFarSecs = 0;
+    timeInterval = null;
+    startTimestamp = null;
+    pauseStartedAt = null;
+    thisPauseSecs = null;
+    clearInterval(intervalCheck);
 
     // Job 3: reset the screen
     document.getElementById("resultTimeDiff").textContent = "";

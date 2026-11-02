@@ -15,7 +15,10 @@ let currtimeTotalSecs; // The total current time in seconds
 let hours, minutes, seconds, ms; // Units of time
 let previousTimeSecs = null, previousTimestampMs = null; //
 let timeMoved; // Real time moved
-let watchedTotalSecs = 0, distractionTotalSecs = 0, totalElapsedSecs = 0, sessionElapsedSecs = 0; // Total time for watched, distracted, and real time respectively
+let watchedTotalSecs = 0; // Total Time for Watched
+let distractionTotalSecs = 0; // Total Time Distracted
+let totalElapsedSecs = 0;  // Total for real time
+let sessionElapsedSecs = 0; // Counts the time for current sessions
 let progressBar; // Moves the Progress Bar
 
 // The Storage Keys
@@ -25,6 +28,7 @@ let savedElapsedTotal = keyPrefix+ "totalElapsedSecs";
 let savedPrevTimeSecs = keyPrefix+ "previousTimeSecs";
 let savedPrevTimeStamp = keyPrefix+ "previousTimestampMs";
 
+// Saves the Time and Progress 
 let savedcurrHrs = keyPrefix+ "currtimeHrs";
 let savedcurrMins = keyPrefix+ "currtimeMins";
 let savedcurrSecs = keyPrefix+ "currtimeSecs";
@@ -33,11 +37,19 @@ let savedrunMins = keyPrefix+ "runtimeMins";
 let savedrunSecs = keyPrefix+ "runtimeSecs";
 let savedProgress = keyPrefix+ "progressFill"
 
+// Automatic Time Calculation
+let startTimestamp = null;
+let intervalCheck; // Interval counter
+let timeInterval = null; // Calculated Interval
+let pauseStartedAt = null;
+let pausedSoFarSecs = 0;
+
 watchedTotalSecs = Number(localStorage.getItem(savedWatchTotal));
 distractionTotalSecs = Number(localStorage.getItem(savedDistactTotal));
 totalElapsedSecs = Number(localStorage.getItem(savedElapsedTotal));
 
 // Bad Total Catcher
+{
 if (!Number.isFinite(watchedTotalSecs)||watchedTotalSecs<0){
     watchedTotalSecs = 0;
 }
@@ -59,7 +71,10 @@ if(localStorage.getItem(savedPrevTimeSecs) === null || localStorage.getItem(save
     previousTimeSecs = null;
     previousTimestampMs = null;
 }
+}
 
+// Loader of Progress
+{
 if (localStorage.getItem(savedcurrHrs) !== null){
     document.getElementById("currtimeHrs").value = localStorage.getItem(savedcurrHrs);
 }
@@ -82,15 +97,16 @@ if (localStorage.getItem(savedProgress) !== null){
     progressBar=Number(localStorage.getItem(savedProgress));
     progressFill.style.width = progressBar + "%";
 }
+}
 
 // Reloading Startup
+{
 document.getElementById("resultTimeDiff").textContent = formatTime(timeDiff);
 document.getElementById("totaltimeTotalDisplay").textContent = formatTime(totalElapsedSecs);
 document.getElementById("realtimeTotalDisplay").textContent = formatTime(sessionElapsedSecs);
 document.getElementById("watchedTotalDisplay").textContent = formatTime(watchedTotalSecs);
 document.getElementById("distractedTotalDisplay").textContent = formatTime(distractionTotalSecs);
-
-//document.getElementById("runtimeHrs").value = "05";
+}
 
     function formatTime (seconds){
         hours = seconds / 3600;
@@ -181,6 +197,36 @@ document.getElementById("calculateTimeDiff").onclick = function(){
 
     previousTimestampMs = Date.now();
     previousTimeSecs = currtimeTotalSecs;
+}
+
+document.getElementById("startTime").onclick = function(){
+    startTimestamp = Date.now();
+    console.log(startTimestamp);
+
+    intervalCheck = setInterval(function(){
+    // runs every time the interval fires
+  
+    timeInterval = Date.now() - startTimestamp;
+    timeInterval = convertSeconds(timeInterval);
+    console.log(timeInterval);
+    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
+    }, 1000);
+
+    startTime.disabled = true; // Stop button from being pressed again
+}
+
+document.getElementById("pauseTime").onclick = function(){
+    pauseStartedAt = Date.now() - startTimestamp;
+    pausedSoFarSecs = timeInterval;
+    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
+    clearInterval(intervalCheck);
+    console.log(timeInterval);
+}
+
+
+document.getElementById("stopTime").onclick = function(){
+    clearInterval(intervalCheck);
+    console.log(timeInterval);
 }
 
 document.getElementById("resetTracker").onclick = function(){

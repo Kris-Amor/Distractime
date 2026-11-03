@@ -252,14 +252,17 @@ document.getElementById("stopTime").onclick = function(){
     return;
     }
     document.getElementById("pauseTime").textContent = "Pause";
+    console.log(pausedTotalSecs);
     pausedTotalSecs += thisPauseSecs;
+    console.log(pausedTotalSecs);
     pausedSoFarSecs = 0;
     timeInterval = null;
     startTimestamp = null;
     pauseStartedAt = null;
     thisPauseSecs = null;
     clearInterval(intervalCheck);
-    document.getElementById("automaticClock").textContent = formatTime(timeInterval)
+    document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
+    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
     console.log(timeInterval);
     console.log("Stopping...");
     startTime.disabled = false; // Stop button from being pressed again
@@ -291,7 +294,6 @@ document.getElementById("resetTracker").onclick = function(){
     sessionElapsedSecs = 0;
     previousTimeSecs = null;       // null, not 0, so the first-click check works
     previousTimestampMs = null;
-
     pausedTotalSecs = 0;
     pausedSoFarSecs = 0;
     timeInterval = null;
@@ -299,6 +301,7 @@ document.getElementById("resetTracker").onclick = function(){
     pauseStartedAt = null;
     thisPauseSecs = null;
     clearInterval(intervalCheck);
+    startTime.disabled = false; // Stop button from being pressed again
 
     // Job 3: reset the screen
     document.getElementById("resultTimeDiff").textContent = "";
@@ -306,6 +309,7 @@ document.getElementById("resetTracker").onclick = function(){
     document.getElementById("realtimeTotalDisplay").textContent = formatTime(0);
     document.getElementById("watchedTotalDisplay").textContent = formatTime(0);
     document.getElementById("distractedTotalDisplay").textContent = formatTime(0);
+    document.getElementById("pausedTotalDisplay").textContent = formatTime(0);
     document.getElementById("progressFill").style.width = "0%";
     document.getElementById("currtimeHrs").value = "";
     document.getElementById("currtimeMins").value = "";

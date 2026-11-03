@@ -20,5 +20,5 @@ button, h2, p, h1 {
 	text-align: center;
   	line-height: 100%; 
   	color: white;
-	transition: width 5s;
+	transition: width 1s;
 }

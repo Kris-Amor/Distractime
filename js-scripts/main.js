@@ -20,7 +20,9 @@ let distractionTotalSecs = 0; // Total Time Distracted
 let totalElapsedSecs = 0;  // Total for real time
 let sessionElapsedSecs = 0; // Counts the time for current sessions
 let pausedTotalSecs = 0; // Total Paused Time
+let realElapsedSecs = 0;  // Real Time Elapsed Seconds
 let progressBar; // Moves the Progress Bar
+let pausedSinceEntrySecs = 0; // Pause for Manual Mode
 
 // The Storage Keys
 let savedWatchTotal = keyPrefix+ "watchedTotalSecs";
@@ -44,6 +46,7 @@ let intervalCheck; // Interval counter
 let timeInterval = null; // Calculated Interval
 let pauseStartedAt = null;
 let pausedSoFarSecs = 0, thisPauseSecs = null;
+let autoStartSecs = 0;
 
 watchedTotalSecs = Number(localStorage.getItem(savedWatchTotal));
 distractionTotalSecs = Number(localStorage.getItem(savedDistactTotal));
@@ -125,6 +128,50 @@ document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTot
         return Math.floor(ms/1000);
     }
 
+    function fillCurrentInputs(totalSecs){
+    let s = Math.floor(totalSecs);
+    document.getElementById("currtimeHrs").value = Math.floor(s / 3600);
+    document.getElementById("currtimeMins").value = Math.floor((s % 3600) / 60);
+    document.getElementById("currtimeSecs").value = s % 60;
+    }
+
+    function paintDisplays(progressSecs, runtimeSecs, realSecs){
+    let timeLeftSecs = Math.max(0, runtimeSecs - progressSecs);
+    let pct = 0;
+    if (runtimeSecs > 0){
+        pct = Math.min(100, (progressSecs / runtimeSecs) * 100);
+    }
+
+    document.getElementById("resultTimeDiff").textContent = formatTime(timeLeftSecs);
+    document.getElementById("totaltimeTotalDisplay").textContent = formatTime(totalElapsedSecs);
+    document.getElementById("realtimeTotalDisplay").textContent = formatTime(realSecs);
+    document.getElementById("watchedTotalDisplay").textContent = formatTime(watchedTotalSecs);
+    document.getElementById("distractedTotalDisplay").textContent = formatTime(distractionTotalSecs);
+    document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
+    progressFill.style.width = pct + "%";
+
+    return pct;
+}
+
+function intervalClock (){ 
+    intervalCheck = setInterval (function(){
+    // runs every time the interval fires
+    timeInterval = Date.now() - startTimestamp;
+    timeInterval = convertSeconds(timeInterval);
+    timeInterval -= pausedSoFarSecs;
+    console.log(timeInterval);
+
+    let videoPosSecs = Math.min(runtimeTotalSecs, autoStartSecs + timeInterval);
+    paintDisplays(videoPosSecs, runtimeTotalSecs, timeInterval);
+
+    let active = document.activeElement.id;  
+        if (active !== "currtimeHrs" && active !== "currtimeMins" && active !== "currtimeSecs"){
+            fillCurrentInputs(videoPosSecs);
+        }
+    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
+    }, 1000);
+
+}
 
 document.getElementById("calculateTimeDiff").onclick = function(){
 
@@ -145,6 +192,11 @@ document.getElementById("calculateTimeDiff").onclick = function(){
     return;
     }
 
+    if (pauseStartedAt !== null){
+    alert("Resume before calculating.");
+    return;
+    }
+
     timeDiff = runtimeTotalSecs - currtimeTotalSecs;
     
     if (timeDiff < 0){   //Checks if Runtime is longer than current time
@@ -157,19 +209,18 @@ document.getElementById("calculateTimeDiff").onclick = function(){
     return;
     }
 
+    let realElapsedSecs = 0;
+
     if (previousTimeSecs !== null){
-    let realElapsedSecs = (Date.now() - previousTimestampMs) / 1000;
-    let timeMovedSecs = Math.abs(currtimeTotalSecs - previousTimeSecs);
+        realElapsedSecs = (Date.now() - previousTimestampMs) / 1000;
+        let activeSecs = realElapsedSecs - pausedSinceEntrySecs;      
+        let timeMovedSecs = Math.abs(currtimeTotalSecs - previousTimeSecs);
 
     watchedTotalSecs += timeMovedSecs;
-    distractionTotalSecs += realElapsedSecs - timeMovedSecs;
+    distractionTotalSecs += activeSecs - timeMovedSecs;           
     totalElapsedSecs += realElapsedSecs;
     sessionElapsedSecs += realElapsedSecs;
 
-    document.getElementById("totaltimeTotalDisplay").textContent = formatTime(totalElapsedSecs);
-    document.getElementById("realtimeTotalDisplay").textContent = formatTime(realElapsedSecs);
-    document.getElementById("watchedTotalDisplay").textContent = formatTime(watchedTotalSecs);
-    document.getElementById("distractedTotalDisplay").textContent = formatTime(distractionTotalSecs);
 
     //console.log(realElapsedSecs, timeMovedSecs, watchedTotalSecs, distractionTotalSecs);
     localStorage.setItem(savedWatchTotal,watchedTotalSecs);
@@ -187,37 +238,51 @@ document.getElementById("calculateTimeDiff").onclick = function(){
 
     }
 
-    timeDiff = formatTime(timeDiff); //Formats to Hour, Minute, Second
-
-    document.getElementById("resultTimeDiff").textContent = timeDiff;
-
-    progressBar = (currtimeTotalSecs / runtimeTotalSecs)*100;
-
-    //document.getElementById("progressFill").style.width = "40%"
-    progressFill.style.width = progressBar + "%";
+    progressBar = paintDisplays(currtimeTotalSecs, runtimeTotalSecs, realElapsedSecs);
     localStorage.setItem(savedProgress, progressBar);
+
+    if (startTime.disabled){   // the clock is running or paused
+    autoStartSecs = currtimeTotalSecs - timeInterval;
+}
 
     previousTimestampMs = Date.now();
     previousTimeSecs = currtimeTotalSecs;
-}
-
-function intervalClock (){ 
-    intervalCheck = setInterval (function(){
-    // runs every time the interval fires
-    timeInterval = Date.now() - startTimestamp;
-    timeInterval = convertSeconds(timeInterval);
-    timeInterval -= pausedSoFarSecs;
-    console.log(timeInterval);
-    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
-    }, 1000);
+    pausedSinceEntrySecs = 0; 
 }
 
 document.getElementById("startTime").onclick = function(){
+    runtimeTotalSecs = toTotalSeconds(
+        document.getElementById("runtimeHrs").value,
+        document.getElementById("runtimeMins").value,
+        document.getElementById("runtimeSecs").value
+    );
+    if (runtimeTotalSecs === 0){
+        alert("Please Input Runtime.");
+        return;
+    }
+
+    if (previousTimeSecs === null){   // Start sets the baseline
+        previousTimeSecs = toTotalSeconds(
+            document.getElementById("currtimeHrs").value,
+            document.getElementById("currtimeMins").value,
+            document.getElementById("currtimeSecs").value
+        );
+        previousTimestampMs = Date.now();
+        pausedSinceEntrySecs = 0;
+        localStorage.setItem(savedPrevTimeSecs, previousTimeSecs);
+        localStorage.setItem(savedPrevTimeStamp, previousTimestampMs);
+    }
+
+    autoStartSecs = toTotalSeconds(
+    document.getElementById("currtimeHrs").value,
+    document.getElementById("currtimeMins").value,
+    document.getElementById("currtimeSecs").value
+    );
+
     startTimestamp = Date.now();
     console.log(startTimestamp);
-    intervalClock ();
-    startTime.disabled = true; // Stop button from being pressed again
-
+    intervalClock();
+    startTime.disabled = true;
 }
 
 document.getElementById("pauseTime").onclick = function(){
@@ -238,6 +303,7 @@ document.getElementById("pauseTime").onclick = function(){
     thisPauseSecs = convertSeconds(Date.now() - pauseStartedAt);
     pausedSoFarSecs += thisPauseSecs;
     pausedTotalSecs += thisPauseSecs;
+    pausedSinceEntrySecs += thisPauseSecs;   
     document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
     pauseStartedAt = null;
     intervalClock ();
@@ -254,6 +320,7 @@ document.getElementById("stopTime").onclick = function(){
     document.getElementById("pauseTime").textContent = "Pause";
     console.log(pausedTotalSecs);
     pausedTotalSecs += thisPauseSecs;
+    pausedSinceEntrySecs += thisPauseSecs;
     console.log(pausedTotalSecs);
     pausedSoFarSecs = 0;
     timeInterval = null;
@@ -300,6 +367,8 @@ document.getElementById("resetTracker").onclick = function(){
     startTimestamp = null;
     pauseStartedAt = null;
     thisPauseSecs = null;
+    pausedSinceEntrySecs = 0;
+    autoStartSecs = 0
     clearInterval(intervalCheck);
     startTime.disabled = false; // Stop button from being pressed again
 
@@ -317,5 +386,7 @@ document.getElementById("resetTracker").onclick = function(){
     document.getElementById("runtimeHrs").value = "";
     document.getElementById("runtimeMins").value = "";
     document.getElementById("runtimeSecs").value = "";
+    document.getElementById("automaticClock").textContent = formatTime(0);
+    document.getElementById("pauseTime").textContent = "Pause";
 
 };

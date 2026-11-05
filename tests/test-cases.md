@@ -29,11 +29,11 @@ Real time comes from a human clicking, so expect to be off by a second or two. C
 
 | # | Test | Previous time | New time | Real seconds | Expected watched | Expected distraction | Expected Pause | Total Check |
 |---|------|---------------|----------|--------------|------------------|----------------------|----------------|-------------| 
-| 1 | Watched straight through | 1:05 (65) | 1:25 (85) | 20 | 20 | 0 | 0 | 20 + 0 + 0 = 20 |
-| 2 | Distracted partway | 1:05 (65) | 1:35 (95) | 40 | 30 | 10 | 0 | 30 + 10 + 0 = 40 |
-| 3 | Rewind | 1:05 (65) | 0:35 (35) | 50 | 30 | 20 | 0 | 30 + 20  0 = 50 |
-| 4 | Same time re-entered | 1:05 (65) | 1:05 (65) | 20 | 0 | 20 | 0|  0 + 20 + 0 = 20 |
-| 5 | Paused Time | 1:05 (65) | 1:05 (65) | 20 | 0 | 0 | 20 | 0 + 0 + 20 |
+| M1 | Watched straight through | 1:05 (65) | 1:25 (85) | 20 | 20 | 0 | 0 | 20 + 0 + 0 = 20 |
+| M2 | Distracted partway | 1:05 (65) | 1:35 (95) | 40 | 30 | 10 | 0 | 30 + 10 + 0 = 40 |
+| M3 | Rewind | 1:05 (65) | 0:35 (35) | 50 | 30 | 20 | 0 | 30 + 20  0 = 50 |
+| M4 | Same time re-entered | 1:05 (65) | 1:05 (65) | 20 | 0 | 20 | 0|  0 + 20 + 0 = 20 |
+| M5 | Paused Time | 1:05 (65) | 1:05 (65) | 20 | 0 | 0 | 20 | 0 + 0 + 20 |
 
 Note: Row 5 is still shelved for Manual Mode. Columns for Paused should be ignored for now.
 
@@ -95,6 +95,31 @@ A pause that happens partway through an auto-mode interval, such as 60 real seco
 
 **Invariant for P8 and P9:** watched + distraction + paused = total elapsed.
 
+## Input normalizing rows
+
+Setup for every row: click Reset first. Then type the values, click Calculate, and read the boxes.
+The rows use the run-time boxes unless stated. A run time of 0 gives "Please Input Runtime," but the boxes still normalize first.
+
+| # | Test | Type in (H / M / S) | Expected boxes after Calculate |
+|---|------|---------------------|--------------------------------|
+| N1 | Minutes roll into hours | 0 / 120 / 0 | 2 / 0 / 0 |
+| N2 | Minutes and seconds both overflow | 0 / 90 / 75 | 1 / 31 / 15 |
+| N3 | Seconds only | 0 / 0 / 3700 | 1 / 1 / 40 |
+| N4 | Blank hours and seconds | blank / 90 / blank | 1 / 30 / 0 |
+| N5 | Already clean | 1 / 5 / 9 | 1 / 5 / 9 (unchanged) |
+| N6 | All three blank | blank / blank / blank | Stay blank, placeholders show, alert "Please Input Runtime." |
+| N7 | Decimal minutes | 0 / 1.5 / 0 | 0 / 1 / 30 |
+| N8 | Decimal seconds | 0 / 0 / 59.9 | 0 / 0 / 59 (floored) |
+| N9 | Negative total | 0 / -5 / 0 | 0 / 0 / 0 |
+| N10 | Negative offset by a positive | 1 / -5 / 0 | 0 / 55 / 0 (the total is 3300, so it is not zeroed) |
+| N11 | Current-time group | current 0 / 90 / 0, run time 2 / 0 / 0 | Current becomes 1 / 30 / 0 |
+| N12 | Leaving a box (change event) | type 120 in minutes, then click out of the box | 2 / 0 / 0 without clicking Calculate |
+| N13 | Start also normalizes | type 0 / 90 / 0 as run time, click Start | Run-time boxes become 1 / 30 / 0 |
+| N14 | Saved after normalizing | Do N2, then refresh | Boxes still show 1 / 31 / 15 |
+| N15 | Does not fight the clock | Start, click into a current-time box while it runs | The box is not overwritten while the cursor is in it |
+
+N10 is a known quirk, not a bug. The function works on the total, so a negative only zeroes out when the whole total is negative.
+
 ## Known issue (parked for future stages)
 
 If the video moves **more** than real time passed (for example, 1:00 to 2:00 after 5 seconds), distraction goes negative (5 - 60 = -55). The invariant still holds, but the result makes no physical sense. The speed/skip prompt in Stage 9 will handle this.
@@ -103,5 +128,5 @@ If the video moves **more** than real time passed (for example, 1:00 to 2:00 aft
 
 | Date | Cases run | Pass/Fail | Notes |
 |------|-----------|-----------|-------|
-| 2026-11-2 | 1 to 5, O1 to O8| 5/5, 8/8 | Problem is mainly in running the exact IRL time to seconds|
+| 2026-11-2 | M1 to M5, O1 to O8| 5/5, 8/8 | Problem is mainly in running the exact IRL time to seconds|
 | 2026-11-5 |

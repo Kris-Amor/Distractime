@@ -121,6 +121,17 @@ document.getElementById("distractedTotalDisplay").textContent = formatTime(distr
 document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
 }
 
+["currtimeHrs", "currtimeMins", "currtimeSecs"].forEach(function(id){
+    document.getElementById(id).onchange = function(){
+        normalizeInputs("currtimeHrs", "currtimeMins", "currtimeSecs");
+    };
+});
+["runtimeHrs", "runtimeMins", "runtimeSecs"].forEach(function(id){
+    document.getElementById(id).onchange = function(){
+        normalizeInputs("runtimeHrs", "runtimeMins", "runtimeSecs");
+    };
+});
+
     function formatTime (seconds){
         hours = seconds / 3600;
         minutes = (seconds % 3600)/60;
@@ -142,6 +153,26 @@ document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTot
     document.getElementById("currtimeMins").value = Math.floor((s % 3600) / 60);
     document.getElementById("currtimeSecs").value = s % 60;
     }
+
+    function normalizeInputs(hrsId, minsId, secsId){
+    let hrsBox = document.getElementById(hrsId);
+    let minsBox = document.getElementById(minsId);
+    let secsBox = document.getElementById(secsId);
+
+    // All three blank: leave them alone, so the placeholders stay
+    if (hrsBox.value === "" && minsBox.value === "" && secsBox.value === ""){
+        return;
+    }
+
+    let totalSecs = Math.floor(toTotalSeconds(hrsBox.value, minsBox.value, secsBox.value));
+    if (!Number.isFinite(totalSecs) || totalSecs < 0){
+        totalSecs = 0;
+    }
+
+    hrsBox.value = Math.floor(totalSecs / 3600);
+    minsBox.value = Math.floor((totalSecs % 3600) / 60);
+    secsBox.value = totalSecs % 60;
+}
 
     function paintDisplays(progressSecs, runtimeSecs, realSecs){
     let timeLeftSecs = Math.max(0, runtimeSecs - progressSecs);
@@ -312,6 +343,9 @@ document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTot
 }
 
 document.getElementById("calculateTimeDiff").onclick = function(){
+
+    normalizeInputs("currtimeHrs", "currtimeMins", "currtimeSecs");
+    normalizeInputs("runtimeHrs", "runtimeMins", "runtimeSecs");
 
     currtimeTotalSecs = toTotalSeconds(
     document.getElementById("currtimeHrs").value,

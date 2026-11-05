@@ -21,7 +21,7 @@ let totalElapsedSecs = 0;  // Total for real time
 let sessionElapsedSecs = 0; // Counts the time for current sessions
 let pausedTotalSecs = 0; // Total Paused Time
 let realElapsedSecs = 0;  // Real Time Elapsed Seconds
-let progressBar; // Moves the Progress Bar
+let progressBar = 0; // Moves the Progress Bar
 let pausedSinceEntrySecs = 0; // Pause for Manual Mode
 
 // The Storage Keys
@@ -47,6 +47,14 @@ let timeInterval = null; // Calculated Interval
 let pauseStartedAt = null;
 let pausedSoFarSecs = 0, thisPauseSecs = null;
 let autoStartSecs = 0;
+
+// Clock keys
+let savedStartTimestamp = keyPrefix + "startTimestamp";
+let savedAutoStartSecs = keyPrefix + "autoStartSecs";
+let savedPausedSoFar = keyPrefix + "pausedSoFarSecs";
+let savedPauseStartedAt = keyPrefix + "pauseStartedAt";
+let savedPausedTotal = keyPrefix + "pausedTotalSecs";
+let savedPausedSinceEntry = keyPrefix + "pausedSinceEntrySecs";
 
 watchedTotalSecs = Number(localStorage.getItem(savedWatchTotal));
 distractionTotalSecs = Number(localStorage.getItem(savedDistactTotal));
@@ -153,24 +161,154 @@ document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTot
     return pct;
 }
 
-function intervalClock (){ 
-    intervalCheck = setInterval (function(){
-    // runs every time the interval fires
-    timeInterval = Date.now() - startTimestamp;
-    timeInterval = convertSeconds(timeInterval);
-    timeInterval -= pausedSoFarSecs;
-    console.log(timeInterval);
+// Load the clock state
+{
+    // Four numbers: a missing value becomes 0
+    autoStartSecs = Number(localStorage.getItem(savedAutoStartSecs));
+    pausedSoFarSecs = Number(localStorage.getItem(savedPausedSoFar));
+    pausedTotalSecs = Number(localStorage.getItem(savedPausedTotal));
+    pausedSinceEntrySecs = Number(localStorage.getItem(savedPausedSinceEntry));
 
-    let videoPosSecs = Math.min(runtimeTotalSecs, autoStartSecs + timeInterval);
-    paintDisplays(videoPosSecs, runtimeTotalSecs, timeInterval);
+    if (!Number.isFinite(autoStartSecs) || autoStartSecs < 0){ autoStartSecs = 0; }
+    if (!Number.isFinite(pausedSoFarSecs) || pausedSoFarSecs < 0){ pausedSoFarSecs = 0; }
+    if (!Number.isFinite(pausedTotalSecs) || pausedTotalSecs < 0){ pausedTotalSecs = 0; }
+    if (!Number.isFinite(pausedSinceEntrySecs) || pausedSinceEntrySecs < 0){ pausedSinceEntrySecs = 0; }
 
-    let active = document.activeElement.id;  
-        if (active !== "currtimeHrs" && active !== "currtimeMins" && active !== "currtimeSecs"){
-            fillCurrentInputs(videoPosSecs);
+    // Two that can be null: check BEFORE converting
+    let rawStart = localStorage.getItem(savedStartTimestamp);
+    let rawPause = localStorage.getItem(savedPauseStartedAt);
+
+    if (rawStart !== null){
+        startTimestamp = Number(rawStart);
+        if (!Number.isFinite(startTimestamp) || startTimestamp > Date.now()){
+            startTimestamp = null;
         }
-    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
-    }, 1000);
+    }
 
+    if (startTimestamp !== null && rawPause !== null){
+        pauseStartedAt = Number(rawPause);
+        if (!Number.isFinite(pauseStartedAt) || pauseStartedAt < startTimestamp || pauseStartedAt > Date.now()){
+            pauseStartedAt = null;
+            startTimestamp = null;      // bad pause data: throw away the whole clock
+        }
+    }
+
+    // The clock needs the run time, and the boxes are loaded by now
+    runtimeTotalSecs = toTotalSeconds(
+        document.getElementById("runtimeHrs").value,
+        document.getElementById("runtimeMins").value,
+        document.getElementById("runtimeSecs").value
+    );
+    if (runtimeTotalSecs === 0){
+        startTimestamp = null;
+        pauseStartedAt = null;
+    }
+
+    // Restore the right state
+    if (startTimestamp !== null){
+        startTime.disabled = true;
+
+        if (pauseStartedAt === null){
+            intervalClock();                         // it was running
+        } else {                                      // it was paused
+            document.getElementById("pauseTime").textContent = "Resume";
+            timeInterval = convertSeconds(pauseStartedAt - startTimestamp) - pausedSoFarSecs;
+            let videoPosSecs = Math.min(runtimeTotalSecs, autoStartSecs + timeInterval);
+            paintDisplays(videoPosSecs, runtimeTotalSecs, timeInterval);
+            document.getElementById("automaticClock").textContent = formatTime(timeInterval);
+        }
+    }
+}
+
+    function intervalClock (){ 
+        intervalCheck = setInterval (function(){
+        // runs every time the interval fires
+        timeInterval = Date.now() - startTimestamp;
+        timeInterval = convertSeconds(timeInterval);
+        timeInterval -= pausedSoFarSecs;
+        console.log(timeInterval);
+
+        let videoPosSecs = Math.min(runtimeTotalSecs, autoStartSecs + timeInterval);
+        paintDisplays(videoPosSecs, runtimeTotalSecs, timeInterval);
+
+        let active = document.activeElement.id;  
+            if (active !== "currtimeHrs" && active !== "currtimeMins" && active !== "currtimeSecs"){
+                fillCurrentInputs(videoPosSecs);
+            }
+            if (videoPosSecs >= runtimeTotalSecs){
+            stopClock(false);
+            alert("Finished!");
+            }
+        document.getElementById("automaticClock").textContent = formatTime(timeInterval);
+        }, 1000);
+
+}
+
+    function stopClock(clearDisplay){
+        document.getElementById("pauseTime").textContent = "Pause";
+
+        if (pauseStartedAt !== null){
+            let openPauseSecs = convertSeconds(Date.now() - pauseStartedAt);
+            pausedTotalSecs += openPauseSecs;
+            pausedSinceEntrySecs += openPauseSecs;
+        }
+
+        pausedSoFarSecs = 0;
+        startTimestamp = null;
+        pauseStartedAt = null;
+        thisPauseSecs = null;
+        clearInterval(intervalCheck);
+        document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
+
+        if (clearDisplay){
+            timeInterval = null;
+            document.getElementById("automaticClock").textContent = formatTime(0);
+        }
+
+        startTime.disabled = false;
+}
+
+    function saveState(){
+        // Totals (always numbers, so always safe to save)
+        localStorage.setItem(savedWatchTotal, watchedTotalSecs);
+        localStorage.setItem(savedDistactTotal, distractionTotalSecs);
+        localStorage.setItem(savedElapsedTotal, totalElapsedSecs);
+
+        // Sticky notes: only save if they hold a real value
+        if (previousTimeSecs !== null){
+            localStorage.setItem(savedPrevTimeSecs, previousTimeSecs);
+            localStorage.setItem(savedPrevTimeStamp, previousTimestampMs);
+        }
+
+        // Input boxes
+        localStorage.setItem(savedcurrHrs, document.getElementById("currtimeHrs").value);
+        localStorage.setItem(savedcurrMins, document.getElementById("currtimeMins").value);
+        localStorage.setItem(savedcurrSecs, document.getElementById("currtimeSecs").value);
+        localStorage.setItem(savedrunHrs, document.getElementById("runtimeHrs").value);
+        localStorage.setItem(savedrunMins, document.getElementById("runtimeMins").value);
+        localStorage.setItem(savedrunSecs, document.getElementById("runtimeSecs").value);
+
+        // Progress bar
+        localStorage.setItem(savedProgress, progressBar);
+
+        // Clock anchors (next step, one key each):
+        localStorage.setItem(savedAutoStartSecs, autoStartSecs);
+        localStorage.setItem(savedPausedSoFar, pausedSoFarSecs);
+        localStorage.setItem(savedPausedTotal, pausedTotalSecs);
+        localStorage.setItem(savedPausedSinceEntry, pausedSinceEntrySecs);
+
+        // Clock anchors that can be null: save a value, or remove the key
+        if (startTimestamp !== null){
+            localStorage.setItem(savedStartTimestamp, startTimestamp);
+        } else {
+            localStorage.removeItem(savedStartTimestamp);
+        }
+
+        if (pauseStartedAt !== null){
+            localStorage.setItem(savedPauseStartedAt, pauseStartedAt);
+        } else {
+            localStorage.removeItem(savedPauseStartedAt);
+        }
 }
 
 document.getElementById("calculateTimeDiff").onclick = function(){
@@ -220,34 +358,19 @@ document.getElementById("calculateTimeDiff").onclick = function(){
     distractionTotalSecs += activeSecs - timeMovedSecs;           
     totalElapsedSecs += realElapsedSecs;
     sessionElapsedSecs += realElapsedSecs;
-
-
-    //console.log(realElapsedSecs, timeMovedSecs, watchedTotalSecs, distractionTotalSecs);
-    localStorage.setItem(savedWatchTotal,watchedTotalSecs);
-    localStorage.setItem(savedDistactTotal, distractionTotalSecs);
-    localStorage.setItem(savedElapsedTotal, totalElapsedSecs);
-    localStorage.setItem(savedPrevTimeSecs, previousTimeSecs);
-    localStorage.setItem(savedPrevTimeStamp, previousTimestampMs);
-
-    localStorage.setItem(savedcurrHrs, document.getElementById("currtimeHrs").value);
-    localStorage.setItem(savedcurrMins, document.getElementById("currtimeMins").value);
-    localStorage.setItem(savedcurrSecs, document.getElementById("currtimeSecs").value);
-    localStorage.setItem(savedrunHrs, document.getElementById("runtimeHrs").value);
-    localStorage.setItem(savedrunMins, document.getElementById("runtimeMins").value);
-    localStorage.setItem(savedrunSecs, document.getElementById("runtimeSecs").value);
-
     }
 
     progressBar = paintDisplays(currtimeTotalSecs, runtimeTotalSecs, realElapsedSecs);
-    localStorage.setItem(savedProgress, progressBar);
 
     if (startTime.disabled){   // the clock is running or paused
-    autoStartSecs = currtimeTotalSecs - timeInterval;
-}
+        autoStartSecs = currtimeTotalSecs - timeInterval;
+    }
 
     previousTimestampMs = Date.now();
     previousTimeSecs = currtimeTotalSecs;
-    pausedSinceEntrySecs = 0; 
+    pausedSinceEntrySecs = 0;
+
+    saveState();
 }
 
 document.getElementById("startTime").onclick = function(){
@@ -258,6 +381,17 @@ document.getElementById("startTime").onclick = function(){
     );
     if (runtimeTotalSecs === 0){
         alert("Please Input Runtime.");
+        return;
+    }
+    
+    let startPosSecs = toTotalSeconds(
+    document.getElementById("currtimeHrs").value,
+    document.getElementById("currtimeMins").value,
+    document.getElementById("currtimeSecs").value
+    );
+    
+    if (startPosSecs >= runtimeTotalSecs){
+        alert("Current time is already at the end. Change it or press Reset.");
         return;
     }
 
@@ -283,6 +417,7 @@ document.getElementById("startTime").onclick = function(){
     console.log(startTimestamp);
     intervalClock();
     startTime.disabled = true;
+    saveState();
 }
 
 document.getElementById("pauseTime").onclick = function(){
@@ -296,6 +431,7 @@ document.getElementById("pauseTime").onclick = function(){
     clearInterval(intervalCheck);
     console.log(pauseStartedAt);
     console.log(timeInterval);
+    saveState();
     console.log("Pausing...");
     }
     else {
@@ -307,32 +443,21 @@ document.getElementById("pauseTime").onclick = function(){
     document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
     pauseStartedAt = null;
     intervalClock ();
+    saveState();
     console.log("Resuming...");
     } 
 }
 
 
 document.getElementById("stopTime").onclick = function(){
-    if (startTimestamp === null){ //Makes sure you're not stoping anything.
-    alert("There is nothing to stop. Please click start.");
-    return;
+    if (startTimestamp === null){
+        alert("There is nothing to stop. Please click start.");
+        return;
     }
-    document.getElementById("pauseTime").textContent = "Pause";
-    console.log(pausedTotalSecs);
-    pausedTotalSecs += thisPauseSecs;
-    pausedSinceEntrySecs += thisPauseSecs;
-    console.log(pausedTotalSecs);
-    pausedSoFarSecs = 0;
-    timeInterval = null;
-    startTimestamp = null;
-    pauseStartedAt = null;
-    thisPauseSecs = null;
-    clearInterval(intervalCheck);
-    document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
-    document.getElementById("automaticClock").textContent = formatTime(timeInterval);
-    console.log(timeInterval);
+    stopClock(true);
+    startTime.disabled = false;
+    saveState();
     console.log("Stopping...");
-    startTime.disabled = false; // Stop button from being pressed again
 }
 
 document.getElementById("resetTracker").onclick = function(){
@@ -340,19 +465,26 @@ document.getElementById("resetTracker").onclick = function(){
         return;
     }
 
-    // Job 1: wipe storage (only your keys, never clear())
+    // Job 1: wipe storage 
     localStorage.removeItem(savedWatchTotal);
     localStorage.removeItem(savedDistactTotal);
     localStorage.removeItem(savedElapsedTotal);
     localStorage.removeItem(savedPrevTimeSecs);
     localStorage.removeItem(savedPrevTimeStamp);
-    localStorage.removeItem(savedcurrHrs);   // use your exact spelling
+    localStorage.removeItem(savedcurrHrs);   
     localStorage.removeItem(savedcurrMins);
     localStorage.removeItem(savedcurrSecs);
     localStorage.removeItem(savedrunHrs);
     localStorage.removeItem(savedrunMins);
     localStorage.removeItem(savedrunSecs);
     localStorage.removeItem(savedProgress);
+
+    localStorage.removeItem(savedStartTimestamp);
+    localStorage.removeItem(savedAutoStartSecs);
+    localStorage.removeItem(savedPausedSoFar);
+    localStorage.removeItem(savedPauseStartedAt);
+    localStorage.removeItem(savedPausedTotal);
+    localStorage.removeItem(savedPausedSinceEntry);
 
     // Job 2: reset the live variables
     watchedTotalSecs = 0;

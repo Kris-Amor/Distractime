@@ -65,16 +65,35 @@ Note Implementation Happens after Automode integration.
 
 | # | Test | Expected result |
 |---|------|-----------------|
-| 11 | First click only | No watched or distraction change (baseline only) |
-| 12 | Run time left blank | Alert: "Please Input Runtime." |
-| 13 | Current time later than run time | Alert: "Runtime must be longer than current time." |
-| 14 | Equal times on the first click | Alert: "You Skipped to The End of The Video." |
-| 15 | Equal times on a later click | Accepted, time left shows 0 |
-| 16 | Three clicks in a row | Totals keep growing (stay numbers, never NaN) |
-| 17 | Rewind to 0:00| All time to it goes to real time but the remaining time goes to 0 | 
-| 18 | New Time Larger than Run Time | Alert: "Runtime must be longer than current time." |
+| O1 | First click only | No watched or distraction change (baseline only) |
+| O2 | Run time left blank | Alert: "Please Input Runtime." |
+| O3 | Current time later than run time | Alert: "Runtime must be longer than current time." |
+| O4 | Equal times on the first click | Alert: "You Skipped to The End of The Video." |
+| O5 | Equal times on a later click | Accepted, time left shows 0 |
+| O6 | Three clicks in a row | Totals keep growing (stay numbers, never NaN) |
+| O7 | Rewind to 0:00| All time to it goes to real time but the remaining time goes to 0 | 
+| O8 | New Time Larger than Run Time | Alert: "Runtime must be longer than current time." |
 
 A pause that happens partway through an auto-mode interval, such as 60 real seconds with 20 paused and 25 moved.
+
+## Auto-mode pause and resume rows
+
+| # | Test | Steps | Expected |
+|---|------|-------|----------|
+| P1 | Pause freezes the clock | Start, wait 5s, Pause, wait 10s | Clock stays at about 5s, label says "Resume" |
+| P2 | Resume continues, not jumps | From P1, click Resume, wait 5s | Clock shows about 10s, not 20s |
+| P3 | Two pauses add up | Pause 5s, Resume, Pause 3s, Resume | Paused total about 8s |
+| P4 | Pause before Start | Click Pause with no Start | Alert: "There is nothing to pause" |
+| P5 | Stop while paused | Start, Pause 10s, Stop | Paused total about 10s, clock clears |
+| P6 | Stop after resume | Start, Pause 10s, Resume, Stop | Paused total about 10s, not 20s |
+| P7 | Calculate during a pause | Pause, click Calculate | Alert: "Resume before calculating" |
+| P8 | Three-bucket check | Start at 0:00, play 5s, pause 10s, resume, play 5s, type 0:0:10, Calculate | Watched about 10, distraction about 0, paused about 10, total about 20 |
+| P9 | Distraction plus pause | Same as P8, but type 0:0:5 | Watched about 5, distraction about 5, paused about 10, total about 20 |
+| P10 | Finish rule | Run time 0:0:10, current blank, Start | Clock stops itself at about 10s, final time stays on screen, alert "Finished!" |
+| P11 | Refresh while running | Start, wait 5s, refresh | Clock continues, Start disabled |
+| P12 | Refresh while paused | Pause, refresh | Label "Resume", clock frozen |
+
+**Invariant for P8 and P9:** watched + distraction + paused = total elapsed.
 
 ## Known issue (parked for future stages)
 
@@ -84,4 +103,5 @@ If the video moves **more** than real time passed (for example, 1:00 to 2:00 aft
 
 | Date | Cases run | Pass/Fail | Notes |
 |------|-----------|-----------|-------|
-| 2026-11-2 | 1 to 5, 11 to 18| 5/5, 8/8 | Problem is mainly in running the exact IRL time to seconds|
+| 2026-11-2 | 1 to 5, O1 to O8| 5/5, 8/8 | Problem is mainly in running the exact IRL time to seconds|
+| 2026-11-5 |

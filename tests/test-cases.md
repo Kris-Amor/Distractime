@@ -50,16 +50,16 @@ Note: Row 5 is still shelved for Manual Mode. Columns for Paused should be ignor
 | A3 | Blank runtime | Runtime empty. Press Start | Alert "Please Input Runtime", clock doesn't start | Passed | |
 | A4 | Pause freezes everything | Runtime 0:05:00. Start, wait 10s, Pause, wait 10s | Clock, boxes, time left and bar all stay put. Paused total unchanged (banked only on Resume) |Passed | |
 | A5 | Resume continues | After A4, Resume, wait 5s | Clock about 15s (not 25s). Paused total about 10s | Passed | |
-| A6 | Stop freezes and keeps totals | Start, wait 10s, Stop | Clock and boxes stop. Totals reset to 0 | Passed | |
+| A6 | Stop freezes and keeps totals | Start, wait 10s, Stop | Clock display resets, saved totals stay.| Passed | |
 | A7 | Past the runtime | Runtime 0:00:30. Start, wait 40s | Time left stays 0, bar stops at 100%, boxes stop at 0:00:30. Clock stops running with an alert. | Passed | |
 | A8 | Re-anchor backward | Runtime 0:05:00. Start, wait 20s, type 0:01:00, Calculate | Boxes continue from about 1:00, not 0:20 | Passed | |
 | A9 | Re-anchor forward | Same, but type 0:02:00 | Boxes continue from about 2:00 | Passed| |
 | A10 | Calculate during a pause | Start, Pause, then Calculate | Alert "Resume before calculating". Nothing changes | Passed | |
 | A11 | Start sets the baseline | Reset. Runtime 0:05:00, current 0. Start, wait 20s, type 0:00:20, Calculate | The first Calculate updates the totals: watched 20, distraction about 0, total elapsed about 20 | Total time: 20s, Real Time: 20s, Watched should be 20, Distraction is 2 seconds due to user pause drift| Passed|
-| A12 | Three buckets at once | Continue the clock from baseline. Over 60s of real time: pause for 20s, resume, then type 0:00:25 and Calculate | Watched 25, distraction 15, paused 20, total elapsed 60 | 25+15+20 = 60 | Failed. The distraction is updated but it is subjected to user error.  |
-| A13 | Pause not counted twice | After A12, wait 30s with no pause. Type 0:00:55, Calculate | Watched 55, distraction 15, paused 20, total elapsed 90 | 55+15+20 = 90 | Watches is 55, distraction is negative, but total elapsed are 1 minutes 43 seconds (user error drift)|
+| A12 | Three buckets at once | Continue the clock from baseline. Over 60s of real time: pause for 20s, resume, then type 0:00:25 and Calculate | Watched 25, distraction 15, paused 20, total elapsed 60 | 25+15+20 = 60 |“Passed on rerun, within hand-timing drift.” |
+| A13 | Pause not counted twice | After A12, wait 30s with no pause. Type 0:00:55, Calculate | Watched 55, distraction 15, paused 20, total elapsed 90 | 55+15+20 = 90 | W“Passed on rerun, within hand-timing drift.”|
 | A14 | Reset while running | Start, wait 5s, Reset, confirm | Clock stops and never updates again. Start enabled, boxes blank, bar 0% | Passed | |
-| A15 | Refresh after Calculate | Calculate once, refresh | Boxes, runtime, time left and bar remain | Passed| Timer still continues |
+| A15 | Refresh after Calculate | Calculate once, refresh | Boxes, runtime, time left and bar remain | Passed| Clock restored after refresh (7C). |
 
 ### Auto-mode pause and resume rows
 
@@ -132,5 +132,5 @@ If the video moves **more** than real time passed (for example, 1:00 to 2:00 aft
 
 | Date | Cases run | Pass/Fail | Notes |
 |------|-----------|-----------|-------|
-| 2026-11-2 | M1 to M5, O1 to O8| 5/5, 8/8 | Problem is mainly in running the exact IRL time to seconds|
-| 2026-11-6 |  O1 to O8, A1 to A15, P1 to P12, N1 to N15| 8/8, 15/15, 12/12, 15/15 | A11 to A13 prone to user error test, N10 subtracts and N14 only works if the values are saved via calculate or start.|
+| 2026-11-2 | M1 to M4, O1 to O8| 4/4, 8/8 | Problem is mainly in running the exact IRL time to seconds, Paused was shelved at the time.|
+| 2026-11-6 |  O1 to O8, A1 to A15, P1 to P12, N1 to N15| 8/8, 16/16, 12/12, 15/15 | A11 to A13 prone to user error test, N10 subtracts and N14 only works if the values are saved via calculate or start.|

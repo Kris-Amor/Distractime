@@ -30,6 +30,7 @@ let savedDistactTotal = keyPrefix+ "distractionTotalSecs";
 let savedElapsedTotal = keyPrefix+ "totalElapsedSecs";
 let savedPrevTimeSecs = keyPrefix+ "previousTimeSecs";
 let savedPrevTimeStamp = keyPrefix+ "previousTimestampMs";
+let savedSeenIntro = keyPrefix + "seenIntro";
 
 // Saves the Time and Progress 
 let savedcurrHrs = keyPrefix+ "currtimeHrs";
@@ -59,6 +60,22 @@ let savedPausedSinceEntry = keyPrefix + "pausedSinceEntrySecs";
 watchedTotalSecs = Number(localStorage.getItem(savedWatchTotal));
 distractionTotalSecs = Number(localStorage.getItem(savedDistactTotal));
 totalElapsedSecs = Number(localStorage.getItem(savedElapsedTotal));
+
+document.getElementById("infoButton").onclick = function(){
+    document.getElementById("infoDialog").showModal();
+};
+
+document.getElementById("infoClose").onclick = function(){
+    document.getElementById("infoDialog").close();
+};
+
+document.getElementById("infoDialog").onclose = function(){
+    localStorage.setItem(savedSeenIntro, "yes");
+};
+
+if (localStorage.getItem(savedSeenIntro) === null){
+    document.getElementById("infoDialog").showModal();
+}
 
 // Bad Total Catcher
 {
@@ -342,6 +359,19 @@ document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTot
         }
 }
 
+function updateButtons(){
+    console.log("updateButtons ran, running =", startTimestamp !== null);
+    let running = startTimestamp !== null;
+    let paused = pauseStartedAt !== null;
+
+    document.getElementById("startTime").disabled = running;
+    document.getElementById("pauseTime").disabled = !running;
+    document.getElementById("stopTime").disabled = !running;
+    document.getElementById("calculateTimeDiff").disabled = paused;
+    document.getElementById("controls").classList.toggle("tracking", running);
+
+}
+
 document.getElementById("calculateTimeDiff").onclick = function(){
 
     normalizeInputs("currtimeHrs", "currtimeMins", "currtimeSecs");
@@ -365,7 +395,7 @@ document.getElementById("calculateTimeDiff").onclick = function(){
     }
 
     if (pauseStartedAt !== null){
-    alert("Resume before calculating.");
+    //alert("Resume before calculating.");
     return;
     }
 
@@ -429,17 +459,9 @@ document.getElementById("startTime").onclick = function(){
         return;
     }
 
-    if (previousTimeSecs === null){   // Start sets the baseline
-        previousTimeSecs = toTotalSeconds(
-            document.getElementById("currtimeHrs").value,
-            document.getElementById("currtimeMins").value,
-            document.getElementById("currtimeSecs").value
-        );
-        previousTimestampMs = Date.now();
-        pausedSinceEntrySecs = 0;
-        localStorage.setItem(savedPrevTimeSecs, previousTimeSecs);
-        localStorage.setItem(savedPrevTimeStamp, previousTimestampMs);
-    }
+    previousTimeSecs = startPosSecs;
+    previousTimestampMs = Date.now();
+    pausedSinceEntrySecs = 0;
 
     autoStartSecs = toTotalSeconds(
     document.getElementById("currtimeHrs").value,
@@ -451,12 +473,13 @@ document.getElementById("startTime").onclick = function(){
     console.log(startTimestamp);
     intervalClock();
     startTime.disabled = true;
+    updateButtons();
     saveState();
 }
 
 document.getElementById("pauseTime").onclick = function(){
     if (startTimestamp === null){ //Makes sure you're not pausing anything.
-    alert("There is nothing to pause. Please click Start.");
+    //alert("There is nothing to pause. Please click Start.");
     return;
     }
     if (pauseStartedAt === null){
@@ -465,6 +488,7 @@ document.getElementById("pauseTime").onclick = function(){
     clearInterval(intervalCheck);
     console.log(pauseStartedAt);
     console.log(timeInterval);
+    updateButtons();
     saveState();
     console.log("Pausing...");
     }
@@ -477,6 +501,7 @@ document.getElementById("pauseTime").onclick = function(){
     document.getElementById("pausedTotalDisplay").textContent = formatTime(pausedTotalSecs);
     pauseStartedAt = null;
     intervalClock ();
+    updateButtons();
     saveState();
     console.log("Resuming...");
     } 
@@ -485,11 +510,12 @@ document.getElementById("pauseTime").onclick = function(){
 
 document.getElementById("stopTime").onclick = function(){
     if (startTimestamp === null){
-        alert("There is nothing to stop. Please click start.");
+        //alert("There is nothing to stop. Please click start.");
         return;
     }
     stopClock(true);
     startTime.disabled = false;
+    updateButtons();
     saveState();
     console.log("Stopping...");
 }
@@ -536,7 +562,6 @@ document.getElementById("resetTracker").onclick = function(){
     pausedSinceEntrySecs = 0;
     autoStartSecs = 0
     clearInterval(intervalCheck);
-    startTime.disabled = false; // Stop button from being pressed again
 
     // Job 3: reset the screen
     document.getElementById("resultTimeDiff").textContent = "";
@@ -554,5 +579,5 @@ document.getElementById("resetTracker").onclick = function(){
     document.getElementById("runtimeSecs").value = "";
     document.getElementById("automaticClock").textContent = formatTime(0);
     document.getElementById("pauseTime").textContent = "Pause";
-
+    updateButtons();
 };

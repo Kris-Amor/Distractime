@@ -7,92 +7,99 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
+        <main class="page">
+            <header class="topbar">
+            <h1>Distractime</h1>
+            <button id="infoButton" aria-label="About this app">i</button>
+            </header>
 
-        <div>
-            <h2>Time Progress</h2>
+            <dialog id="infoDialog">
+                <h2>How this works</h2>
+                <p>Tell it how long a video is and where you are in it. It shows how much is left, and splits your real time into watching, distraction and pauses.</p>
+
+                <h3>Two ways to use it</h3>
+                <p><strong>Manual:</strong> type your current time and the runtime, then press Calculate. Each time you press it again, the page compares your new time with your last entry. Video time you moved through counts as watched, and the rest of the real time counts as distraction.</p>
+                <p><strong>Auto:</strong> type the runtime (and where you are), then press Start. A clock follows along. Use Pause when you step away on purpose, and that time is counted separately, not as distraction. You can still press Calculate to type where you really are, and the page works out the difference.</p>
+
+                <p>Everything stays in your browser. Nothing is sent anywhere.</p>
+                <button id="infoClose">Got it</button>
+            </dialog>
+
+             <section class="remaining">
+            <p class="label">Time Remaining</p>
+            <p id="resultTimeDiff" class="big"></p>
+            </section>
+
             <div id="progressBar">
-                <div id="progressFill">
-
-                </div>
+                <div id="progressFill"></div>
             </div>
-        </div>
 
-        <div>
-            <h2>Please insert the time</h2>
             <fieldset>
-            <legend>Current Time</legend>
-            <!-- Hours -->
-            <input type="number" id="currtimeHrs" min="0" placeholder="HH" style="width: 50px; text-align: center;">
-            <span>:</span>
-
-            <!-- Minutes -->
-            <input type="number" id="currtimeMins" min="0"  placeholder="MM" style="width: 50px; text-align: center;">
-            <span>:</span>
-        
-            <!-- Seconds -->
-            <input type="number" id="currtimeSecs"  min="0" placeholder="SS" style="width: 50px; text-align: center;">
+                <legend>Current Time</legend>
+                <div class="time-row">
+                    <input type="number" id="currtimeHrs" class="time-box" min="0" placeholder="HH" aria-label="Current time hours">
+                    <span>:</span>
+                    <input type="number" id="currtimeMins" class="time-box" min="0" placeholder="MM" aria-label="Current time minutes">
+                    <span>:</span>
+                    <input type="number" id="currtimeSecs" class="time-box" min="0" placeholder="SS" aria-label="Current time seconds">
+                </div>
             </fieldset>
 
             <fieldset>
-            <legend>Runtime</legend>
-            <!-- Hours -->
-            <input type="number" id="runtimeHrs" min="0" placeholder="HH" style="width: 50px; text-align: center;">
-            <span>:</span>
-
-            <!-- Minutes -->
-            <input type="number" id="runtimeMins" min="0" placeholder="MM" style="width: 50px; text-align: center;">
-            <span>:</span>
-        
-            <!-- Seconds -->
-            <input type="number" id="runtimeSecs" min="0" placeholder="SS" style="width: 50px; text-align: center;">
+                <legend>Runtime</legend>
+                <div class="time-row">
+                    <input type="number" id="runtimeHrs" class="time-box" min="0" placeholder="HH" aria-label="Runtime hours">
+                    <span>:</span>
+                    <input type="number" id="runtimeMins" class="time-box" min="0" placeholder="MM" aria-label="Runtime minutes">
+                    <span>:</span>
+                    <input type="number" id="runtimeSecs" class="time-box" min="0" placeholder="SS" aria-label="Runtime seconds">
+                </div>
             </fieldset>
 
             <button id="calculateTimeDiff">Calculate</button>
 
+            <div id="controls" class="controls">
+                <button id="startTime">Start</button>
+                <button id="pauseTime">Pause</button>
+                <button id="stopTime">Stop</button>
+            </div>
+
             <button id="resetTracker">Reset</button>
 
-        </div>
+             <p id="automaticClock" class="debug-only"></p>
 
-        <div>
-            <button id="startTime">Start</button> 
+            <dl class="stats">
+                <div class="stat"><dt>Total Time</dt><dd id="totaltimeTotalDisplay"></dd></div>
+                <div class="stat"><dt>Distraction</dt><dd id="distractedTotalDisplay"></dd></div>
+                <div class="stat"><dt>Real Time Elapsed</dt><dd id="realtimeTotalDisplay"></dd></div>
+                <div class="stat"><dt>Watched</dt><dd id="watchedTotalDisplay"></dd></div>
+                <div class="stat"><dt>Paused</dt><dd id="pausedTotalDisplay"></dd></div>
+            </dl>
+            <p class="note">Real Time Elapsed updates every second while the clock runs. 
+                The other totals update when you press Calculate. Paused updates when you resume or stop.</p>
 
-            <p id="automaticClock"></p>
-
-            <button id="pauseTime">Pause</button> <button id="stopTime">Stop</button>
-
-        </div>
-
-
-
-        <div>
-            <h3>Time Remaining: </h3>
-            <p id="resultTimeDiff"></p>
-        </div>
-
-        <div>
-            <h3>Total Time Elapsed: </h3>
-            <p id="totaltimeTotalDisplay"></p>
-        </div>
-
-        <div>
-            <h3>Real Time Elapsed: </h3>
-            <p id="realtimeTotalDisplay"></p>
-        </div>
-
-        <div>
-            <h3>Watched Passed: </h3>
-            <p id="watchedTotalDisplay"></p>
-        </div>
-
-        <div>
-            <h3>Distraction Time: </h3>
-            <p id="distractedTotalDisplay"></p>
-        </div>
-
-        <div>
-            <h3>Paused Time: </h3>
-            <p id="pausedTotalDisplay"></p>
-        </div>
+            <section class="glossary">
+            <h2>What the words mean</h2>
+            <dl>
+                <dt>Time Remaining</dt>
+                <dd>Runtime minus your current position in the video.</dd>
+                <dt>Current Time</dt>
+                <dd>Where you are in the video. While the clock runs, it follows the clock.</dd>
+                <dt>Runtime</dt>
+                <dd>The total length of the video.</dd>
+                <dt>Total Time</dt>
+                <dd>All real time counted so far, across sessions. It updates when you press Calculate.</dd>
+                <dt>Distraction</dt>
+                <dd>Real time spent not paused, minus how far the video position moved. It can read negative if you skip ahead faster than the clock.</dd>
+                <dt>Real Time Elapsed</dt>
+                <dd>Real time counted this session. It resets when you refresh.</dd>
+                <dt>Watched</dt>
+                <dd>How far your video position moved between entries. A rewind counts the same as moving forward.</dd>
+                <dt>Paused</dt>
+                <dd>Real time spent paused with the Pause button. It is added when you Resume or Stop.</dd>
+            </dl>
+            </section>
+        </main>
 
     </body>
 <script src="js-scripts/main.js" defer></script>

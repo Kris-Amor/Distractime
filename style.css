@@ -1,24 +1,153 @@
+*, *::before, *::after { box-sizing: border-box; }
 
-button, h2, p, h1 { 
-	margin: 16px; 
+:root {
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --text: #1c1f2a;
+    --muted: #6b7080;
+    --accent: #4f46e5;
+    --track: #e3e5ee;
+    --border: #d5d8e3;
+    --danger: #b3261e;
 }
 
-#progressBar{
-	height: 20px;
-	border-radius: 10px;
-	background-color: aqua;
-	overflow: hidden;
-
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
 }
 
-#progressFill{
-	height: 100%;
-	background-color: blueviolet;
-	width:0%;
-	border-radius: 10px;
-	overflow: hidden;
-	text-align: center;
-  	line-height: 100%; 
-  	color: white;
-	transition: width 1s;
+.page {
+    max-width: 36rem;
+    margin: 0 auto;
+    padding: 1rem;
 }
+
+/* Top bar */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.topbar h1 { font-size: 1.1rem; margin: 0; }
+
+#infoButton {
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: 50%;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+}
+
+/* Time remaining and bar */
+.remaining { text-align: center; margin: 1.5rem 0 0.75rem; }
+.remaining .label {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.big {
+    margin: 0.25rem 0;
+    font-size: clamp(1.4rem, 6vw, 2.4rem);
+    font-weight: 700;
+}
+
+#progressBar {
+    height: 1rem;
+    margin-bottom: 1.5rem;
+    background: var(--track);
+    border-radius: 999px;
+    overflow: hidden;
+}
+#progressFill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 1s linear;
+}
+
+/* Time inputs */
+fieldset {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+}
+legend { padding: 0 0.4rem; color: var(--muted); }
+.time-row { display: flex; align-items: center; gap: 0.5rem; }
+.time-box {
+    width: 4rem;
+    padding: 0.4rem;
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* Buttons */
+button {
+    font: inherit;
+    padding: 0.7rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.6rem;
+    cursor: pointer;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+#calculateTimeDiff {
+    width: 100%;
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.controls { display: flex; gap: 0.5rem; margin: 1rem 0 0.5rem; }
+#startTime { flex: 3; }
+#pauseTime, #stopTime { flex: 1; }
+.controls button { transition: flex 0.3s; }
+.controls.tracking #pauseTime,
+.controls.tracking #stopTime { flex: 2; }
+
+#resetTracker { width: 100%; color: var(--danger); }
+
+/* Hidden debug readout */
+.debug-only { display: none; }
+
+/* Totals */
+.stats { margin: 1.5rem 0; }
+.stat {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.stat dt { color: var(--muted); }
+.stat dd { margin: 0; font-weight: 600; text-align: right; }
+
+/* Glossary */
+.glossary { margin-top: 2rem; color: var(--muted); font-size: 0.9rem; }
+.glossary h2 { font-size: 1rem; color: var(--text); }
+.glossary dt { margin-top: 0.75rem; font-weight: 600; color: var(--text); }
+.glossary dd { margin: 0; }
+
+/* Info dialog */
+dialog {
+    max-width: min(28rem, 90vw);
+    padding: 1.25rem;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.4); }
+
+.note { margin: -0.75rem 0 1.5rem; color: var(--muted); font-size: 0.85rem; }

@@ -54,7 +54,7 @@ Note: Row 5 is still shelved for Manual Mode. Columns for Paused should be ignor
 | A7 | Past the runtime | Runtime 0:00:30. Start, wait 40s | Time left stays 0, bar stops at 100%, boxes stop at 0:00:30. Clock stops running with an alert. | Passed | |
 | A8 | Re-anchor backward | Runtime 0:05:00. Start, wait 20s, type 0:01:00, Calculate | Boxes continue from about 1:00, not 0:20 | Passed | |
 | A9 | Re-anchor forward | Same, but type 0:02:00 | Boxes continue from about 2:00 | Passed| |
-| A10 | Calculate during a pause | Start, Pause, then Calculate | Alert "Resume before calculating". Nothing changes | Passed | |
+| A10 | Calculate during a pause | Start, Pause, then Calculate | Button is Greyed Out | Passed | |
 | A11 | Start sets the baseline | Reset. Runtime 0:05:00, current 0. Start, wait 20s, type 0:00:20, Calculate | The first Calculate updates the totals: watched 20, distraction about 0, total elapsed about 20 | Total time: 20s, Real Time: 20s, Watched should be 20, Distraction is 2 seconds due to user pause drift| Passed|
 | A12 | Three buckets at once | Continue the clock from baseline. Over 60s of real time: pause for 20s, resume, then type 0:00:25 and Calculate | Watched 25, distraction 15, paused 20, total elapsed 60 | 25+15+20 = 60 |“Passed on rerun, within hand-timing drift.” |
 | A13 | Pause not counted twice | After A12, wait 30s with no pause. Type 0:00:55, Calculate | Watched 55, distraction 15, paused 20, total elapsed 90 | 55+15+20 = 90 | W“Passed on rerun, within hand-timing drift.”|
@@ -71,10 +71,10 @@ Timing is by hand, so a pass means within about 2 to 3 seconds.
 | P1 | Pause freezes the clock | Start, wait 5s, Pause, wait 10s | Clock stays at about 5s, label says "Resume" | |
 | P2 | Resume continues, not jumps | From P1, click Resume, wait 5s | Clock shows about 10s, not 20s | |
 | P3 | Two pauses add up | Start, Pause 5s, Resume, Pause 3s, Resume | Paused total about 8s (it updates on Resume) | |
-| P4 | Pause before Start | Click Pause with no Start | Alert: "There is nothing to pause" | |
+| P4 | Pause before Start | Click Pause with no Start | Button is Greyed Out | |
 | P5 | Stop while paused | Start, Pause 10s, Stop | Paused total about 10s, clock clears | |
 | P6 | Stop after resume | Start, Pause 10s, Resume, Stop | Paused total about 10s, not 20s | |
-| P7 | Calculate during a pause | Start, Pause, click Calculate | Alert: "Resume before calculating" | |
+| P7 | Calculate during a pause | Start, Pause, click Calculate | Button is Greyed Out | |
 | P8 | Three-bucket check | Start at 0:00, play 5s, pause 10s, resume, play 5s, type 0:0:10, Calculate | Watched about 10, distraction about 0, paused about 10, total about 20 | |
 | P9 | Distraction plus pause | Same as P8, but type 0:0:5 | Watched about 5, distraction about 5, paused about 10, total about 20 | |
 | P10 | Finish rule | Run time 0:0:10, current blank, Start | Clock stops itself at about 10s, final time stays on screen, alert "Finished!" | |

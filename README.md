@@ -7,7 +7,7 @@ A small browser app that answers one question: **how much longer until this vide
 
 It can't see inside a YouTube tab, because browsers block that across sites. Instead, you type where you are in the video and how long it is, and the app uses your device's clock to work out the rest. It also splits your real time into **watched**, **distraction** and **paused**.
 
-**Live site:** [LIVE URL]
+**Live site:** [LIVE URL](https://kris-amor.github.io/Distractime/)]
 
 ## Features
 
